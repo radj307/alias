@@ -26,8 +26,5 @@
     <ClInclude Include="Setting.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigFinder.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

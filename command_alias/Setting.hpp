@@ -42,23 +42,17 @@ namespace commandalias {
 		Arg::DRY{ "dry", 'd' },
 		Arg::WRITE_INI{ "write-ini", 'i' };
 
+
 	struct Setting : file::ini::KeyHelper {
 		constexpr Setting(std::string header, std::string key) : file::ini::KeyHelper(std::forward<std::string>(header), std::forward<std::string>(key)) {}
 		// Declare Settings
-		static const Setting COMMANDLINE, USE_LOG;
+		static const Setting COMMANDLINE, USE_LOG, PAUSE;
 	};
 	// Define Settings
 	inline const Setting
 		Setting::COMMANDLINE{ "target", "commandline" },
-		Setting::USE_LOG{ "console", "use_log" };
-
-	// Replaces a file's extension with the given string
-	inline std::string replace_file_ext(const std::string& filename, const std::string& new_ext)
-	{
-		if ( const auto pos{ filename.find_last_of(".") }; str::pos_valid(pos) )
-			return filename.substr(0u, pos) + new_ext;
-		return filename + new_ext;
-	}
+		Setting::USE_LOG{ "console", "use_log" },
+		Setting::PAUSE{ "console", "pause" };
 
 	namespace help {
 		inline void print(const std::string& program_path, const std::string& program_name)
@@ -70,13 +64,11 @@ namespace commandalias {
 				<< "OPTIONS:\n"
 				<< Arg::HELP << "Shows this help display.\n"
 				<< Arg::DRY << "Dry run, does not execute or write anything, instead outputs commands/files to STDOUT.\n"
-				<< Arg::WRITE_INI << "Write a default INI config file to the given filename. If no filename is included, uses \"" << replace_file_ext(program_name, ".ini") << "\"\n"
+				<< Arg::WRITE_INI << "Write a default INI config file to the given filename. If no filename is included, uses \"" << file::replace_extension(program_name, ".ini").generic_string() << "\"\n"
 				<< '\n'
-				<< "INI SETTINGS:\n"
+				<< "INI:\n"
 				<< "The program will search for INI files located in the same directory as the executable.\n"
-				<< "Currently: \"" << program_path << "\"\n"
-				<< '\n'
-				<< "";
+				<< "Currently: \"" << program_path << "\"\n";
 		}
 	}
 
@@ -89,7 +81,8 @@ namespace commandalias {
 				<< Setting::COMMANDLINE.key << " = \"\"\n"
 				<< '\n'
 				<< "[console]\n"
-				<< Setting::USE_LOG.key << " = true\n";
+				<< Setting::USE_LOG.key << " = true\n"
+				<< Setting::PAUSE.key << " = false\n";
 			return buffer;
 		}
 
