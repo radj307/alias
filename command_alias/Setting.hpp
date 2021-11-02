@@ -46,11 +46,12 @@ namespace commandalias {
 	struct Setting : file::ini::KeyHelper {
 		constexpr Setting(std::string header, std::string key) : file::ini::KeyHelper(std::forward<std::string>(header), std::forward<std::string>(key)) {}
 		// Declare Settings
-		static const Setting COMMANDLINE, USE_LOG, PAUSE;
+		static const Setting COMMANDLINE, FORWARD_ARGS, USE_LOG, PAUSE;
 	};
 	// Define Settings
 	inline const Setting
 		Setting::COMMANDLINE{ "target", "commandline" },
+		Setting::FORWARD_ARGS{ "target", "forward-args" },
 		Setting::USE_LOG{ "console", "use_log" },
 		Setting::PAUSE{ "console", "pause" };
 
@@ -79,6 +80,7 @@ namespace commandalias {
 			buffer
 				<< "[target]\n"
 				<< Setting::COMMANDLINE.key << " = \"\"\n"
+				<< Setting::FORWARD_ARGS.key << " = false\n"
 				<< '\n'
 				<< "[console]\n"
 				<< Setting::USE_LOG.key << " = true\n"

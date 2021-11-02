@@ -45,7 +45,9 @@ int main(const int argc, char** argv, char** envp)
 		else
 			ini.read(file::replace_extension(program_name, ".ini").generic_string());
 
+		const auto target{ ini.getv(Setting::COMMANDLINE) };
 		const auto // get settings/args
+			forward_args{ str::tolower(ini.getv(Setting::FORWARD_ARGS).value_or("")) == "true" },
 			use_log{ str::tolower(ini.getv(Setting::USE_LOG).value_or("")) == "true" },
 			dry_run{ args.check_flag(Arg::DRY.flag()) || args.check_opt(Arg::DRY.opt()) };
 
@@ -66,26 +68,28 @@ int main(const int argc, char** argv, char** envp)
 
 			if (use_log)
 				std::cout << sys::term::log << "Successfully wrote default INI to \"" << target_filename << "\"\n";
+			return 0; // don't execute when writing ini
 		}
 
 		// if no valid INI settings were found, throw an exception
 		if (ini.empty())
 			throw std::exception(std::string("Couldn't find any valid INI files located in directory: \"" + program_path + "\"\n").c_str());
 
-		if (const auto command{ ini.getv(Setting::COMMANDLINE) }; command.has_value()) {
-			if (use_log)
-				std::cout << sys::term::log << "Executing command \"" << command.value() << "\"\n";
+		const auto command{ target.value() + (forward_args ? " " + args.getAll<std::string>() : "") };
 
-			if (dry_run)
-				std::cout << command.value() << '\n';
-			else {
-				const auto retcode{ exec(command.value().c_str()) };
-				if (use_log)
-					std::cout << sys::term::log << "\"" << command.value() << "\" returned " << retcode << "\n";
-			}
+		if (command.empty() || std::all_of(command.begin(), command.end(), isspace))
+			throw std::exception("Command was empty!");
+
+		if (use_log)
+			std::cout << sys::term::log << "Executing command \"" << command << "\"\n";
+
+		if (dry_run)
+			std::cout << command << '\n';
+		else {
+			const auto retcode{ exec(command.c_str()) };
+			if (use_log)
+				std::cout << sys::term::log << "\"" << command << "\" returned " << retcode << "\n";
 		}
-		else // INI container is NOT empty, but does not contain the required keys
-			throw std::exception("Found a valid INI file, but it did not contain a valid command!");
 
 		if (const auto pause{ ini.getv(Setting::PAUSE) }; pause.has_value() && str::tolower(pause.value()) == "true") {
 			std::cout << "Press " << color::f::red << "<ENTER>" << color::reset << " to exit." << std::endl;
