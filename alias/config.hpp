@@ -15,13 +15,14 @@ namespace alias {
 		file::INI cfg{ path };
 		// target
 		Global.command = cfg.getvs(HEADER_TARGET, "command").value_or("");
-		Global.pass_args = cfg.checkv(HEADER_TARGET, "pass_args", true);
+		Global.forward_args = cfg.checkv(HEADER_TARGET, "forward_args", true);
 		// output
 		Global.allow_output = cfg.checkv(HEADER_OUTPUT, "allow_output", true);
+		Global.pause_before_exit = cfg.checkv(HEADER_OUTPUT, "pause_before_exit", true);
 		Global.append_newline = cfg.checkv(HEADER_OUTPUT, "append_newline", true);
 		Global.out_file = cfg.getvs(HEADER_OUTPUT, "out_file").value_or("");
 		// misc
-		Global.log.setLevel(xlog::include_all_below(xlog::string_to_level(cfg.getvs(HEADER_MISC, "log_level").value_or("error"))));
+		Global.log.setLevel(xlog::string_to_level(cfg.getvs(HEADER_MISC, "log_level").value_or("error")));
 		return cfg;
 	}
 
@@ -35,15 +36,26 @@ namespace alias {
 		buffer
 			<< '[' << HEADER_TARGET << "]\n"
 			<< "command = \"" << Global.command << "\" ; Put the command you want to execute here\n"
-			<< "pass_args = " << str::bool_to_string(Global.pass_args) << " ; When true, passes any arguments received to the target by appending them to the command string."
+			<< "forward_args = " << str::bool_to_string(Global.forward_args) << " ; When true, passes any arguments received to the target by appending them to the command string.\n"
 			<< '\n'
 			<< '[' << HEADER_OUTPUT << "]\n"
 			<< "allow_output = " << str::bool_to_string(Global.allow_output) << " ; When false, the command produces no output.\n"
+			<< "pause_before_exit = " << str::bool_to_string(Global.pause_before_exit) << " ; Prompts for a key press before exiting. Only works if the command executed successfully.\n"
 			<< "append_newline = " << str::bool_to_string(Global.append_newline) << " ; When true, appends a newline character to the output.\n"
-			<< "out_file = \"" << Global.out_file << "\" ; If this is empty, STDOUT is used instead.\n"
+			<< "out_file = \"" << Global.out_file << "\" ; Put the name of a file to direct output to. If empty, STDOUT is used.\n"
 			<< '\n'
 			<< '[' << HEADER_MISC << "]\n"
-			<< "log_level = " << Global.log.getLevel().as_string_id() << '\n'
+			<< "log_level = " << Global.log.getLevel().as_string_id() << " ; (Range: 0 - 127) See below table for flag values.\n"
+			<< "; | Flag | Log Level |\n"
+			<< "; |------|-----------|\n"
+			<< "; | 0    | None      |\n"
+			<< "; | 1    | Critical  |\n"
+			<< "; | 2    | Error     |\n"
+			<< "; | 4    | Warning   |\n"
+			<< "; | 8    | Message   |\n"
+			<< "; | 16   | Log       |\n"
+			<< "; | 32   | Info      |\n"
+			<< "; | 64   | Debug     |\n"
 			;
 		return file::write(path, buffer.rdbuf(), false);
 	}

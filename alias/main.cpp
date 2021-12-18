@@ -29,49 +29,56 @@ inline std::string merge_args(const int argc, char** argv, const int off = 1)
 #undef ERROR
 
 /**
- *# SYNTAX LEGEND
-  <>		Variable
-  []		Condition
-  ?(...)	Condition Outcome when True
-  ?{...}	Condition Block when True
-  !(...)	Condition Outcome when False
-  !{...}	Condition Block when False
-  //...		Comment
-  {...}		Block
+ *	# SYNTAX LEGEND
+ *	$>			Program Entry Point
+ *	<$			Program Exit Point
+ *	{}			Block
+ *	<>			Variable Name
+ *	()			Operation
+ *	-[]			Condition
+ *	?...		When True
+ *	!...		When False
+ *	^...		Identifier
+ *	>>...		Jump to Next
+ *	<<...		Jump to Previous
+ *	&			AND
+ *	|			OR
  *
- *#	PROGRAM FLOW
- *	[<config> exists]
- *		!{
- *			{write config file}
- *			{return 1}
- *		}
- *		?{
- *			[<pass_args>]
- *				?(Append all arguments to the outgoing command)
- *			[<allow_output>]
- *				!(Execute the command without saving the output)
- *				?{
- *					[<out_file> is NOT empty]
- *						?(Direct command output to the file specified by <out_file>)
- *						!(Direct command output to STDOUT)
- *				}
- *			{return 0}
- *		}
- *
- *
+ *	# PROGRAM FLOW
+ *	$>
+		-[config file exists]
+		?{
+			(Read Config File)
+			-[<forward_args>]
+			?(Append <argv> to <command>)
+			-[<allow_output>]
+			?{
+				-[<out_file> is empty]
+				?(Execute <command> & direct output to STDOUT)
+				!(Execute <command> & direct output to <out_file>)
+			}
+			!(Execute <command> & discard output)
+		}
+		!(Write Config File)
+	<$
  */
+ /** @def RETURN_CODE_EXCEPTION @brief Return value when an exception occurred and interrupted the program. */
+#define RETURN_CODE_EXCEPTION -2
+/** @def RETURN_CODE_PROCFAILURE @brief Return value when an error occurred during command execution. */
+#define RETURN_CODE_PROCFAILURE -3
+/** @def RETURN_CODE_INITIALIZE @brief Return value when no config file was detected, and a new one was created. */
+#define RETURN_CODE_INITIALIZE -4
  /**
   * @brief			Main.
   * @param argc		Argument Count
   * @param argv		Argument Array
   * @returns		int
   *\n
-  *					| Value | Description			|
-  *					| ----- | --------------------- |
-  *					| 1		| Wrote default INI		|
-  *					| 0		| Successful execution	|
-  *					| -1	| std::exception		|
-  *					| -2	| undefined exception	|
+  *					| Value					 | Description				|
+  *					| ---------------------- | ------------------------ |
+  *					| <any>					 | Process Return Code		|
+  *					| RETURN_CODE_EXCEPTION	 | An Exception Occurred	|
+  *					| RETURN_CODE_INITIALIZE | Wrote default INI		|
   */
 int main(const int argc, char** argv)
 {
@@ -85,26 +92,17 @@ int main(const int argc, char** argv)
 		if (!file::exists(cfg_path)) {
 			write_log(level::INFO, "Missing Config File.");
 			if (write_config(cfg_path))
-				write_log(level::MESSAGE, "Successfully created ", cfg_path);
+				Global.log.msg("Successfully created ", cfg_path);
 			else
-				write_log(level::ERROR, "Failed to create file: ", cfg_path);
-			exit(1);
+				Global.log.error("Failed to create file ", cfg_path);
+			exit(RETURN_CODE_INITIALIZE);
 		}
 
 		auto cfg{ read_config(cfg_path) };
 
-		write_log(level::INFO, "Successfully read config file ", cfg_path);
-		write_log(level::DEBUG, "Config File Contents:\n", cfg);
-		write_log(level::DEBUG, "Parsed Values:",
-			"\ncommand:        ", Global.command,
-			"\nallow_output:   ", str::bool_to_string(Global.allow_output),
-			"\nappend_newline: ", str::bool_to_string(Global.append_newline),
-			"\nout_file:       ", Global.out_file,
-			"\nlog_level:      ", Global.log.getLevel().as_string_id(),
-			"\npass_args:      ", str::bool_to_string(Global.pass_args)
-		);
+		Global.log.info("Successfully read config file ", cfg_path);
 
-		if (Global.pass_args && argc > 1) {
+		if (Global.forward_args && argc > 1) {
 			Global.command += ' ';
 			Global.command += merge_args(argc, argv);
 		}
@@ -118,24 +116,25 @@ int main(const int argc, char** argv)
 		}
 		else {
 			if (Global.out_file.empty()) {
-				write_log(level::DEBUG, "Directing output to STDOUT");
-				std::cout << Exec(Global.command);
+				Global.log.debug("Directing output to STDOUT");
+				std::cout << Exec(Global.command) << newline_if_enabled;
 			}
 			else {
 				write_log(level::INFO, "Directing output to \"", Global.out_file, '\"');
 				if (std::ofstream ofs{ Global.out_file }; ofs.is_open())
-					ofs << Exec(Global.command);
+					ofs << Exec(Global.command) << newline_if_enabled;
 				else
 					throw make_exception("Failed to open output file \"", Global.out_file, "\"!");
 			}
 		}
 
-		return 0;
+		Global.pauseBeforeExit();
+		return Global.getReturnCode().value_or(RETURN_CODE_PROCFAILURE);
 	} catch (const std::exception& ex) {
-		std::cerr << term::error << ex.what() << std::endl;
-		return -1;
+		std::cerr << term::crit << ex.what() << std::endl;
+		return RETURN_CODE_EXCEPTION;
 	} catch (...) {
 		std::cerr << term::crit << "An unknown exception occurred!" << std::endl;
-		return -2;
+		return RETURN_CODE_EXCEPTION;
 	}
 }
