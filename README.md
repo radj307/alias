@@ -21,13 +21,13 @@ It then uses `popen`/`pclose` to execute the command set in the config, prints a
 4.  Edit the generated `.ini` file & set the command to execute.
 
 __Example:__  
-Say you wanted to execute the command `ls -Hidden -Recurse [path]` by entering `lsa [path]`.  
+Say you wanted to execute the command `ls -Force` _(`ls -a` on POSIX)_ by entering `lsa`.  
 First, rename `alias.exe` to `lsa.exe`, and place it somewhere on your PATH.  
 Then run `lsa.exe` once to generate `lsa.ini` in the same directory, and open it in a text editor.  
 Set the following values:  
 ```ini
 [target]
-command = "ls -Hidden -Recurse"
+command = "ls -Force"
 forward_args = true
 ```
 Now you can use the `lsa` command to execute `ls -Hidden -Recurse`
