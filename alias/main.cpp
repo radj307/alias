@@ -26,6 +26,8 @@ inline std::string merge_args(const int argc, char** argv, const int off = 1)
 #define RETURN_CODE_PROCFAILURE -3
 /** @def RETURN_CODE_INITIALIZE @brief Return value when no config file was detected, and a new one was created. */
 #define RETURN_CODE_INITIALIZE -4
+/** @def RETURN_CODE_BADCONFIG @brief Return value when the config's version is incompatible. */
+#define RETURN_CODE_OLDCONFIG -5
  /**
   * @brief			Main.
   * @param argc		Argument Count
@@ -60,6 +62,24 @@ int main(const int argc, char** argv)
 
 		// Read the config
 		auto cfg{ read_config(cfg_path) };
+
+		// Check the config version
+		if (!Global.check_file_version<0>(ALIAS_VERSION_MAJOR)) { // major versions don't match
+			Global.log.error("Config was created with an incompatible version of alias, regenerating the config to update is required.");
+			Global.log.error("Config Version:\t", version_to_string(Global.file_version));
+			Global.log.error("Alias Version:\t", ALIAS_VERSION);
+			return RETURN_CODE_OLDCONFIG;
+		}
+		else if (!Global.check_file_version<1>(ALIAS_VERSION_MINOR)) { // minor versions don't match
+			Global.log.warn("Config was created with an older version of alias, and might not work. Regenerating the config is recommended.");
+			Global.log.info("Config Version:\t", version_to_string(Global.file_version));
+			Global.log.info("Alias Version:\t", ALIAS_VERSION);
+		}
+		else if (!Global.check_file_version<2>(ALIAS_VERSION_PATCH)) { // patch versions don't match
+			Global.log.log("Config version is outdated, but is compatible.");
+			Global.log.info("Config Version:\t", version_to_string(Global.file_version));
+			Global.log.info("Alias Version:\t", ALIAS_VERSION);
+		}
 
 		Global.log.log("Successfully read config file ", cfg_path.generic_string());
 

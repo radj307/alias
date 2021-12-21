@@ -1,12 +1,26 @@
 #pragma once
 #include "version.h"
 
+#include <str.hpp>
 #include <xlog.hpp>
 using namespace xlog;
 
 #include <iostream>
 
 namespace alias {
+	using Version = std::tuple<short, short, short>;
+
+	inline std::string version_to_string(const Version& v) noexcept { return str::stringify(std::get<0>(v), '.', std::get<1>(v), '.', std::get<2>(v)); }
+	inline Version string_to_version(const std::string& strver)
+	{
+		if (std::all_of(strver.begin(), strver.end(), [](auto&& c) { return isdigit(c) || c == '.'; })) {
+			auto& [major, v] {str::split(strver, '.')};
+			auto& [minor, patch] {str::split(v, '.') };
+			return{ str::stos(major), str::stos(minor), str::stos(patch) };
+		}
+		return{ 0, 0, 0 };
+	}
+
 	static struct {
 
 		inline void pauseBeforeExit()
@@ -24,11 +38,18 @@ namespace alias {
 			return std::nullopt;
 		}
 
+		template<short i>
+		inline bool check_file_version(const short& v) const noexcept
+		{
+			static_assert(i >= 0 && i <= 2, "Cannot check an out-of-bounds version index.");
+			return std::get<i>(file_version) == v;
+		}
+
 		// Program Variables:
 		std::unique_ptr<int> return_code{ nullptr };
 
 		// Config Variables (& Object):
-		std::string file_version{ ALIAS_VERSION };
+		Version file_version{ 0, 0, 0 };
 		// header: target
 		std::string command;
 		// header: output

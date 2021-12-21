@@ -3,7 +3,9 @@
 
 #define INI_USE_EXPERIMENTAL
 #include <INI.hpp>
+#include <str.hpp>
 
+#include <utility>
 #include <filesystem>
 
 namespace alias {
@@ -13,6 +15,8 @@ namespace alias {
 	[[nodiscard]] inline file::INI read_config(const std::filesystem::path& path)
 	{
 		file::INI cfg{ path };
+		// file_version
+		Global.file_version = string_to_version(cfg.getvs("", "file_version").value_or("0.0.0"));
 		// target
 		Global.command = cfg.getvs(HEADER_TARGET, "command").value_or("");
 		Global.forward_args = cfg.checkv(HEADER_TARGET, "forward_args", true);
@@ -30,11 +34,11 @@ namespace alias {
 	[[nodiscard]] inline bool write_config(const std::filesystem::path& path, const file::INI& ini) { return ini.write(path); }
 
 	/// @brief	Write the default config to disk
-	[[nodiscard]] inline bool write_config(const std::filesystem::path& path)
+	[[nodiscard]] inline bool write_config(const std::filesystem::path& path, const Version& version)
 	{
 		std::stringstream buffer;
 		buffer
-			<< "file_version = " << Global.file_version << '\n'
+			<< "file_version = " << version_to_string(version) << '\n'
 			<< '[' << HEADER_TARGET << "]\n"
 			<< "command = \"" << Global.command << "\" ; Put the command you want to execute here\n"
 			<< "forward_args = " << str::bool_to_string(Global.forward_args) << " ; When true, passes any arguments received to the target by appending them to the command string.\n"
