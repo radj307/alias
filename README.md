@@ -13,6 +13,7 @@ This allows you to create command aliases or command macros on windows, or execu
 # How it Works
 The program keeps track of its current name & location, and checks its directory for an `.ini` configuration file with the same name.  
 It then uses `popen`/`pclose` to execute the command set in the config, prints any text from STDOUT/STDERR to either STDOUT or a file, then returns the result.
+_Note: popen uses cmd.exe, so powershell commands will not work unless you prepend `powershell -Command ` to the command._
 
 # Usage
 1.  Download the [latest release](https://github.com/radj307/Command-Alias/releases).
@@ -21,7 +22,7 @@ It then uses `popen`/`pclose` to execute the command set in the config, prints a
 4.  Edit the generated `.ini` file & set the command to execute.
 
 __Example:__  
-Say you wanted to execute the command `ls -Force` _(`ls -a` on POSIX)_ by entering `lsa`.  
+Say you wanted to execute the command `ls -a` by entering `lsa`.  
 First, rename `alias.exe` to `lsa.exe`, and place it somewhere on your PATH.  
 Then run `lsa.exe` once to generate `lsa.ini` in the same directory, and open it in a text editor.  
 Set the following values:  
