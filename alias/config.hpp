@@ -7,7 +7,7 @@
 #include <filesystem>
 
 namespace alias {
-	inline constexpr const auto HEADER_TARGET{ "target" }, HEADER_OUTPUT{ "output" }, HEADER_MISC{ "misc" };
+	inline CONSTEXPR const auto HEADER_TARGET{ "target" }, HEADER_OUTPUT{ "output" }, HEADER_MISC{ "misc" };
 
 	/// @brief	Read the specified config from disk
 	[[nodiscard]] inline file::INI read_config(const std::filesystem::path& path)

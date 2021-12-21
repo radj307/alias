@@ -38,7 +38,7 @@ namespace alias {
 		std::string out_file;
 		// header: misc
 		bool forward_args{ true };
-		xLogs<std::ostream> log{ std::cerr };
+		xLogs<std::ostream> log{ std::cerr, level::OnlyErrorsAndWarnings | level::MESSAGE };
 	} Global;
 
 	inline std::ostream& newline_if_enabled(std::ostream& os)

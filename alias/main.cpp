@@ -7,12 +7,6 @@ using namespace alias;
 #include <TermAPI.hpp>
 #include <exec.hpp>
 
-template<typename... T>
-inline void write_log(T&&... msg)
-{
-	((Global.log << std::forward<T>(msg)), ...) << xlog::endm;
-}
-
 inline std::string merge_args(const int argc, char** argv, const int off = 1)
 {
 	std::string buffer{};
@@ -26,42 +20,6 @@ inline std::string merge_args(const int argc, char** argv, const int off = 1)
 	return buffer;
 }
 
-#undef ERROR
-
-/**
- *	# SYNTAX LEGEND
- *	$>			Program Entry Point
- *	<$			Program Exit Point
- *	{}			Block
- *	<>			Variable Name
- *	()			Operation
- *	-[]			Condition
- *	?...		When True
- *	!...		When False
- *	^...		Identifier
- *	>>...		Jump to Next
- *	<<...		Jump to Previous
- *	&			AND
- *	|			OR
- *
- *	# PROGRAM FLOW
- *	$>
-		-[config file exists]
-		?{
-			(Read Config File)
-			-[<forward_args>]
-			?(Append <argv> to <command>)
-			-[<allow_output>]
-			?{
-				-[<out_file> is empty]
-				?(Execute <command> & direct output to STDOUT)
-				!(Execute <command> & direct output to <out_file>)
-			}
-			!(Execute <command> & discard output)
-		}
-		!(Write Config File)
-	<$
- */
  /** @def RETURN_CODE_EXCEPTION @brief Return value when an exception occurred and interrupted the program. */
 #define RETURN_CODE_EXCEPTION -2
 /** @def RETURN_CODE_PROCFAILURE @brief Return value when an error occurred during command execution. */
@@ -83,35 +41,40 @@ inline std::string merge_args(const int argc, char** argv, const int off = 1)
 int main(const int argc, char** argv)
 {
 	try {
+		// Locate the config file
 		env::PATH path{ {argv[0]} };
 		const auto& [program_path, program_name] { path.resolve_split(argv[0]) };
 		const auto cfg_path{ program_path / std::filesystem::path(program_name).replace_extension("ini") };
 
-		write_log(level::DEBUG, "Config Path: ", cfg_path);
+		Global.log.debug("Config Path: ", cfg_path.generic_string());
 
+		// Check if the config file exists
 		if (!file::exists(cfg_path)) {
-			write_log(level::INFO, "Missing Config File.");
-			if (write_config(cfg_path))
-				Global.log.msg("Successfully created ", cfg_path);
+			Global.log.debug("Missing Config File.");
+			if (write_config(cfg_path, Version{ ALIAS_VERSION_MAJOR, ALIAS_VERSION_MINOR, ALIAS_VERSION_PATCH }))
+				Global.log.msg("Successfully created ", cfg_path.generic_string());
 			else
-				Global.log.error("Failed to create file ", cfg_path);
+				Global.log.error("Failed to create file ", cfg_path.generic_string());
 			exit(RETURN_CODE_INITIALIZE);
 		}
 
+		// Read the config
 		auto cfg{ read_config(cfg_path) };
 
-		Global.log.info("Successfully read config file ", cfg_path);
+		Global.log.log("Successfully read config file ", cfg_path.generic_string());
 
+		// Concatenate arguments to the command if forward_args is enabled
 		if (Global.forward_args && argc > 1) {
 			Global.command += ' ';
 			Global.command += merge_args(argc, argv);
 		}
 
-		write_log(level::INFO, "Command:\t\"", Global.command, '\"');
+		Global.log.info("Command:\t\"", Global.command, '\"');
 
+		// Select output method
 		if (!Global.allow_output) {
 			if (exec(Global.command.c_str()))
-				write_log(level::INFO, "Silent execution successful.");
+				Global.log.info("Silent execution successful.");
 			else throw make_exception("Failed to execute command \"", Global.command, '\"');
 		}
 		else {
@@ -120,7 +83,7 @@ int main(const int argc, char** argv)
 				std::cout << Exec(Global.command) << newline_if_enabled;
 			}
 			else {
-				write_log(level::INFO, "Directing output to \"", Global.out_file, '\"');
+				Global.log.info("Directing output to \"", Global.out_file, '\"');
 				if (std::ofstream ofs{ Global.out_file }; ofs.is_open())
 					ofs << Exec(Global.command) << newline_if_enabled;
 				else
@@ -128,12 +91,13 @@ int main(const int argc, char** argv)
 			}
 		}
 
+		// Return the received result code
 		Global.pauseBeforeExit();
 		return Global.getReturnCode().value_or(RETURN_CODE_PROCFAILURE);
-	} catch (const std::exception& ex) {
+	} catch (const std::exception& ex) { // catch std::exceptions
 		std::cerr << term::crit << ex.what() << std::endl;
 		return RETURN_CODE_EXCEPTION;
-	} catch (...) {
+	} catch (...) { // catch other exceptions
 		std::cerr << term::crit << "An unknown exception occurred!" << std::endl;
 		return RETURN_CODE_EXCEPTION;
 	}
