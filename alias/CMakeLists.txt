@@ -11,18 +11,16 @@ if (MSVC)
 endif()
 
 set(HEADERS
-	"./globals.h"
-	"./config.hpp"
-	"./exec.hpp"
+	"globals.h"
+	"config.hpp"
+	"exec.hpp"
 )
 
 set(SRC
-	"./main.cpp"
+	"main.cpp"
 )
 
 add_executable (alias ${HEADERS} ${SRC})
-target_include_directories(alias PUBLIC "./")
-target_link_directories(alias PUBLIC "./")
+target_include_directories(alias PUBLIC ".")
 
-target_link_libraries(alias PUBLIC shared str-lib file-lib TermAPI)
-
+target_link_libraries(alias PUBLIC shared strlib filelib TermAPI)
