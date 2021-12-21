@@ -43,6 +43,8 @@ inline std::string merge_args(const int argc, char** argv, const int off = 1)
 int main(const int argc, char** argv)
 {
 	try {
+		Global.log.info("Alias version ", ALIAS_VERSION);
+
 		// Locate the config file
 		env::PATH path{ {argv[0]} };
 		const auto& [program_path, program_name] { path.resolve_split(argv[0]) };
