@@ -15,7 +15,7 @@ include(AutoVersion)
 # Create the version.h file
 FILE(REMOVE "${CMAKE_SOURCE_DIR}/alias/version.h")
 PARSE_VERSION_STRING(${CMAKE_SOURCE_DIR} VER_MAJOR VER_MINOR VER_PATCH VER_EXTRA)
-CONCAT_VERSION_STRING(VER ${VER_MAJOR} ${VER_MINOR} ${VER_PATCH} "")
+CONCAT_VERSION_STRING(VER ${VER_MAJOR} ${VER_MINOR} ${VER_PATCH})
 configure_file("${CMAKE_SOURCE_DIR}/cmake/inputs/version.h.in" "${CMAKE_SOURCE_DIR}/alias/version.h" @ONLY)
 
 # Command Alias Project

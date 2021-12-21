@@ -59,8 +59,8 @@ endfunction()
 # @param _minor		Minor version number
 # @param _patch		Patch version number
 # @param _extra		Extra portions of the version string.
-function(concat_version_string _out_ver _major _minor _patch _extra)
-	set(${_out_ver} "${_major}.${_minor}.${_patch}${_extra}" CACHE STRING "Full version string." FORCE)
+function(concat_version_string _out_ver _major _minor _patch)
+	set(${_out_ver} "${_major}.${_minor}.${_patch}" CACHE STRING "Full version string." FORCE)
 endfunction()
 
 #### CREATE_VERSION_HEADER ####

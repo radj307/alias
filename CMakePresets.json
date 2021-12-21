@@ -56,7 +56,7 @@
       "displayName": "Windows x64 Release",
       "inherits": "windows-default",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "MinSizeRel"
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   ]

@@ -21,7 +21,7 @@ set(SRC
 )
 
 add_executable (alias ${HEADERS} ${SRC})
-target_include_directories(alias PUBLIC "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_SOURCE_DIR}/307lib/include")
-target_link_directories(alias PUBLIC "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_SOURCE_DIR}/307lib/lib")
+target_include_directories(alias PUBLIC "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_SOURCE_DIR}/307lib/${CMAKE_BUILD_TYPE}/include")
+target_link_directories(alias PUBLIC "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_SOURCE_DIR}/307lib/${CMAKE_BUILD_TYPE}/lib")
 
 target_link_libraries(alias PUBLIC shared strlib filelib TermAPI)
