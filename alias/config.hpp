@@ -34,6 +34,7 @@ namespace alias {
 	{
 		std::stringstream buffer;
 		buffer
+			<< "file_version = " << Global.file_version << '\n'
 			<< '[' << HEADER_TARGET << "]\n"
 			<< "command = \"" << Global.command << "\" ; Put the command you want to execute here\n"
 			<< "forward_args = " << str::bool_to_string(Global.forward_args) << " ; When true, passes any arguments received to the target by appending them to the command string.\n"

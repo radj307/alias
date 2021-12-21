@@ -1,4 +1,6 @@
 #pragma once
+#include "version.h"
+
 #include <xlog.hpp>
 using namespace xlog;
 
@@ -26,6 +28,7 @@ namespace alias {
 		std::unique_ptr<int> return_code{ nullptr };
 
 		// Config Variables (& Object):
+		std::string file_version{ ALIAS_VERSION };
 		// header: target
 		std::string command;
 		// header: output
