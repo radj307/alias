@@ -14,7 +14,7 @@ This allows you to create command aliases or command macros on windows, or execu
 The program keeps track of its current name & location, and checks its directory for an `.ini` configuration file with the same name.  
 It then uses the __popen__ function to execute the command set in the config, prints any text from STDOUT/STDERR to either STDOUT or a file, then returns the result.  
 
-_Note: __popen__ uses `cmd.exe`, so powershell commands will not work unless you prepend `powershell -Command ` to the command._
+_Note: __popen__ uses `cmd.exe`, so powershell commands will not work unless you prepend `powershell -Command` to the command._
 
 # Usage
 1.  Download the [latest release](https://github.com/radj307/Command-Alias/releases).
