@@ -11,7 +11,7 @@ This allows you to create command aliases or command macros on windows, or execu
 - Fully Configurable
 
 # How it Works
-The program keeps track of its current name, and checks its directory for an `.ini` configuration file with the same name.  
+The program keeps track of its current name & location, and checks its directory for an `.ini` configuration file with the same name.  
 It then uses `popen`/`pclose` to execute the command set in the config, prints any text from STDOUT/STDERR to either STDOUT or a file, then returns the result.
 
 # Usage
