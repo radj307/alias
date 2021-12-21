@@ -5,14 +5,26 @@ cmake_minimum_required (VERSION 3.15)
 set(CMAKE_CXX_STANDARD 20)
 
 if (MSVC)
-	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-	# Fix MSVC __cplusplus macro
-	string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus")
+	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)			# Export all symbols on windows
+	string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus")	# Fix MSVC __cplusplus macro
 endif()
 
-project ("cmd-alias")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+include(AutoVersion)
 
-set(TERMAPI_VERSION 4)
-set(TERMAPI_ENABLE_EXTENSIONS ON)
-add_subdirectory("307lib")
+# Create the version.h file
+FILE(REMOVE "${CMAKE_SOURCE_DIR}/alias/version.h")
+PARSE_VERSION_STRING(${CMAKE_SOURCE_DIR} VER_MAJOR VER_MINOR VER_PATCH VER_EXTRA)
+CONCAT_VERSION_STRING(VER ${VER_MAJOR} ${VER_MINOR} ${VER_PATCH} "")
+configure_file("${CMAKE_SOURCE_DIR}/cmake/inputs/version.h.in" "${CMAKE_SOURCE_DIR}/alias/version.h" @ONLY)
+
+# Command Alias Project
+project ("cmd-alias" VERSION ${VER} LANGUAGES CXX)
+
+# Import 307lib
+include_directories("${307lib_PATH}/include")	# headers
+link_directories("${307lib_PATH}/lib")			# libraries
+
+# Include the main alias project.
 add_subdirectory("alias")
+
