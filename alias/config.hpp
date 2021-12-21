@@ -48,14 +48,14 @@ namespace alias {
 			<< "log_level = " << Global.log.getLevel().as_string_id() << " ; (Range: 0 - 127) See below table for flag values.\n"
 			<< "; | Flag | Log Level |\n"
 			<< "; |------|-----------|\n"
-			<< "; | 0    | None      |\n"
-			<< "; | 1    | Critical  |\n"
-			<< "; | 2    | Error     |\n"
-			<< "; | 4    | Warning   |\n"
-			<< "; | 8    | Message   |\n"
-			<< "; | 16   | Log       |\n"
-			<< "; | 32   | Info      |\n"
-			<< "; | 64   | Debug     |\n"
+			<< "; | `0`  | None      |\n"
+			<< "; | `1`  | Critical  |\n"
+			<< "; | `2`  | Error     |\n"
+			<< "; | `4`  | Warning   |\n"
+			<< "; | `8`  | Message   |\n"
+			<< "; | `16` | Log       |\n"
+			<< "; | `32` | Info      |\n"
+			<< "; | `64` | Debug     |\n"
 			;
 		return file::write(path, buffer.rdbuf(), false);
 	}
