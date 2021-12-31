@@ -5,7 +5,7 @@ using namespace alias;
 #include <env.hpp>
 #include <str.hpp>
 #include <TermAPI.hpp>
-#include <exec.hpp>
+#include <process.hpp>
 
 inline std::string merge_args(const int argc, char** argv, const int off = 1)
 {
@@ -95,19 +95,19 @@ int main(const int argc, char** argv)
 
 		// Select output method
 		if (!Global.allow_output) {
-			if (exec(Global.command.c_str()))
+			if (process::exec(Global.command))
 				Global.log.info("Silent execution successful.");
 			else throw make_exception("Failed to execute command \"", Global.command, '\"');
 		}
 		else {
 			if (Global.out_file.empty()) {
 				Global.log.debug("Directing output to STDOUT");
-				std::cout << Exec(Global.command) << newline_if_enabled;
+				std::cout << process::exec(Global.command) << newline_if_enabled;
 			}
 			else {
 				Global.log.info("Directing output to \"", Global.out_file, '\"');
 				if (std::ofstream ofs{ Global.out_file }; ofs.is_open())
-					ofs << Exec(Global.command) << newline_if_enabled;
+					ofs << process::exec(Global.command) << newline_if_enabled;
 				else
 					throw make_exception("Failed to open output file \"", Global.out_file, "\"!");
 			}

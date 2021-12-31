@@ -21,6 +21,11 @@ configure_file("${CMAKE_SOURCE_DIR}/cmake/inputs/version.h.in" "${CMAKE_SOURCE_D
 # Command Alias Project
 project ("cmd-alias" VERSION ${VER} LANGUAGES CXX)
 
+add_subdirectory("307lib")
+
 # Include the main alias project.
 add_subdirectory("alias")
+
+# Include the execute contents of STDOUT as command project
+add_subdirectory("execpipe")
 
