@@ -22,22 +22,6 @@ namespace alias {
 	}
 
 	static struct {
-
-		inline void pauseBeforeExit()
-		{
-			if (pause_before_exit) {
-				std::cout << "Press " << color::setcolor(color::red) << "<Enter>" << color::reset_f << " to exit." << std::endl;
-				(void)std::cin.get();
-			}
-		}
-
-		inline std::optional<int> getReturnCode() const noexcept
-		{
-			if (const auto p{ return_code.get() }; p != nullptr)
-				return *p;
-			return std::nullopt;
-		}
-
 		template<short i>
 		inline bool check_file_version(const short& v) const noexcept
 		{
@@ -46,8 +30,6 @@ namespace alias {
 		}
 
 		// Program Variables:
-		std::unique_ptr<int> return_code{ nullptr };
-
 		// Config Variables (& Object):
 		Version file_version{ 0, 0, 0 };
 		// header: target
@@ -59,7 +41,9 @@ namespace alias {
 		std::string out_file;
 		// header: misc
 		bool forward_args{ true };
-		xLogs<std::ostream> log{ std::cerr, level::OnlyErrorsAndWarnings | level::MESSAGE };
+
+		// log manager
+		xLogs<std::ostream> log{ std::cout, level::OnlyErrorsAndWarnings | level::MESSAGE };
 	} Global;
 
 	inline std::ostream& newline_if_enabled(std::ostream& os)

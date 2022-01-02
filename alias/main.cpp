@@ -7,6 +7,15 @@ using namespace alias;
 #include <TermAPI.hpp>
 #include <process.hpp>
 
+/** @def RETURN_CODE_EXCEPTION @brief Return value when an exception occurred and interrupted the program. */
+#define RETURN_CODE_EXCEPTION -2
+/** @def RETURN_CODE_PROCFAILURE @brief Return value when an error occurred during command execution. */
+#define RETURN_CODE_PROCFAILURE -3
+/** @def RETURN_CODE_INITIALIZE @brief Return value when no config file was detected, and a new one was created. */
+#define RETURN_CODE_INITIALIZE -4
+/** @def RETURN_CODE_BADCONFIG @brief Return value when the config's version is incompatible. */
+#define RETURN_CODE_OLDCONFIG -5
+
 inline std::string merge_args(const int argc, char** argv, const int off = 1)
 {
 	std::string buffer{};
@@ -20,14 +29,18 @@ inline std::string merge_args(const int argc, char** argv, const int off = 1)
 	return buffer;
 }
 
- /** @def RETURN_CODE_EXCEPTION @brief Return value when an exception occurred and interrupted the program. */
-#define RETURN_CODE_EXCEPTION -2
-/** @def RETURN_CODE_PROCFAILURE @brief Return value when an error occurred during command execution. */
-#define RETURN_CODE_PROCFAILURE -3
-/** @def RETURN_CODE_INITIALIZE @brief Return value when no config file was detected, and a new one was created. */
-#define RETURN_CODE_INITIALIZE -4
-/** @def RETURN_CODE_BADCONFIG @brief Return value when the config's version is incompatible. */
-#define RETURN_CODE_OLDCONFIG -5
+inline void version_check()
+{
+	if (ALIAS_VERSION_MAJOR > std::get<0>(Global.file_version)) {
+		Global.log.error("Major Version Mismatch: (", color::setcolor::red, version_to_string(Global.file_version), color::reset_f, " < ", ALIAS_VERSION, ')');
+		throw make_exception("Config file was generated with an incompatible version of alias, delete it and regenerate.");
+	}
+	else if (ALIAS_VERSION_MINOR > std::get<1>(Global.file_version))
+		Global.log.msg("Minor Version Mismatch: (", color::setcolor::yellow, version_to_string(Global.file_version), color::reset_f, " < ", ALIAS_VERSION, ')');
+	else if (ALIAS_VERSION_PATCH > std::get<2>(Global.file_version))
+		Global.log.msg("Patch Version Mismatch: (", version_to_string(Global.file_version), " < ", ALIAS_VERSION, ')');
+}
+
  /**
   * @brief			Main.
   * @param argc		Argument Count
@@ -43,6 +56,8 @@ inline std::string merge_args(const int argc, char** argv, const int off = 1)
 int main(const int argc, char** argv)
 {
 	try {
+		std::cout << term::EnableANSI;
+
 		Global.log.info("Alias version ", ALIAS_VERSION);
 
 		// Locate the config file
@@ -66,61 +81,64 @@ int main(const int argc, char** argv)
 		auto cfg{ read_config(cfg_path) };
 
 		// Check the config version
-		if (!Global.check_file_version<0>(ALIAS_VERSION_MAJOR)) { // major versions don't match
-			Global.log.error("Config was created with an incompatible version of alias, regenerating the config to update is required.");
-			Global.log.error("Config Version:\t", version_to_string(Global.file_version));
-			Global.log.error("Alias Version:\t", ALIAS_VERSION);
-			return RETURN_CODE_OLDCONFIG;
-		}
-		else if (!Global.check_file_version<1>(ALIAS_VERSION_MINOR)) { // minor versions don't match
-			Global.log.warn("Config was created with an older version of alias, and might not work. Regenerating the config is recommended.");
-			Global.log.info("Config Version:\t", version_to_string(Global.file_version));
-			Global.log.info("Alias Version:\t", ALIAS_VERSION);
-		}
-		else if (!Global.check_file_version<2>(ALIAS_VERSION_PATCH)) { // patch versions don't match
-			Global.log.log("Config version is outdated, but is compatible.");
-			Global.log.info("Config Version:\t", version_to_string(Global.file_version));
-			Global.log.info("Alias Version:\t", ALIAS_VERSION);
-		}
+		version_check();
+		
+		// Check if the command field is blank
+		if (Global.command.empty())
+			throw make_exception("Invalid config: Command is blank!");
 
-		Global.log.log("Successfully read config file ", cfg_path.generic_string());
+		Global.log.info("Successfully read config file ", cfg_path.generic_string());
 
 		// Concatenate arguments to the command if forward_args is enabled
 		if (Global.forward_args && argc > 1) {
-			Global.command += ' ';
-			Global.command += merge_args(argc, argv);
+			if (const auto margs{ merge_args(argc, argv) }; !margs.empty()) {
+				Global.command.reserve(Global.command.size() + 1ull + margs.size());
+				Global.command += margs;
+			}
 		}
 
 		Global.log.info("Command:\t\"", Global.command, '\"');
 
+		std::unique_ptr<int> rc{ nullptr };
+
 		// Select output method
-		if (!Global.allow_output) {
-			if (process::exec(Global.command))
+		if (!Global.allow_output) { // no output
+			if (process::Proc(rc.get(), Global.command).close())
 				Global.log.info("Silent execution successful.");
 			else throw make_exception("Failed to execute command \"", Global.command, '\"');
 		}
 		else {
-			if (Global.out_file.empty()) {
-				Global.log.debug("Directing output to STDOUT");
-				std::cout << process::exec(Global.command) << newline_if_enabled;
-			}
-			else {
+			if (!Global.out_file.empty()) { // File
 				Global.log.info("Directing output to \"", Global.out_file, '\"');
 				if (std::ofstream ofs{ Global.out_file }; ofs.is_open())
-					ofs << process::exec(Global.command) << newline_if_enabled;
-				else
-					throw make_exception("Failed to open output file \"", Global.out_file, "\"!");
+					ofs << process::Proc(rc.get(), Global.command) << newline_if_enabled;
+				else throw make_exception("Failed to open output file \"", Global.out_file, "\"!");
+			}
+			else { // STDOUT
+				Global.log.info("Directing output to STDOUT");
+				std::cout << process::Proc(rc.get(), Global.command) << newline_if_enabled;
 			}
 		}
+		
+		// check if process pipe set the return code correctly
+		if (!rc.get()) {
+			Global.log.debug("Return code pointer wasn't set, the process pipe failed to correctly set a return value!");
+			throw make_exception('\"', color::setcolor::yellow, Global.command, color::reset_f, "\" failed!");
+		}
 
-		// Return the received result code
-		Global.pauseBeforeExit();
-		return Global.getReturnCode().value_or(RETURN_CODE_PROCFAILURE);
+		// pause before exiting if enabled in the config
+		if (Global.pause_before_exit) {
+			std::cout << "Press " << color::setcolor::red << "<Enter>" << color::reset_f << " to exit." << std::endl;
+			(void)std::cin.get();
+		}
+
+		Global.log.log("Command returned: ", color::setcolor::green, rc, color::setcolor::reset);
+
+		return *rc.get();
 	} catch (const std::exception& ex) { // catch std::exceptions
-		std::cerr << term::crit << ex.what() << std::endl;
-		return RETURN_CODE_EXCEPTION;
+		Global.log.error(ex.what());
 	} catch (...) { // catch other exceptions
-		std::cerr << term::crit << "An unknown exception occurred!" << std::endl;
-		return RETURN_CODE_EXCEPTION;
+		Global.log.crit("An unknown exception occurred!");
 	}
+	return RETURN_CODE_EXCEPTION;
 }
