@@ -93,17 +93,18 @@ int main(const int argc, char** argv)
 		if (Global.forward_args && argc > 1) {
 			if (const auto margs{ merge_args(argc, argv) }; !margs.empty()) {
 				Global.command.reserve(Global.command.size() + 1ull + margs.size());
+				Global.command += ' ';
 				Global.command += margs;
 			}
 		}
 
 		Global.log.info("Command:\t\"", Global.command, '\"');
-
-		std::unique_ptr<int> rc{ nullptr };
+		
+		int rc{ RETURN_CODE_PROCFAILURE };
 
 		// Select output method
 		if (!Global.allow_output) { // no output
-			if (process::Proc(rc.get(), Global.command).close())
+			if (process::Proc(rc, Global.command).close())
 				Global.log.info("Silent execution successful.");
 			else throw make_exception("Failed to execute command \"", Global.command, '\"');
 		}
@@ -111,17 +112,17 @@ int main(const int argc, char** argv)
 			if (!Global.out_file.empty()) { // File
 				Global.log.info("Directing output to \"", Global.out_file, '\"');
 				if (std::ofstream ofs{ Global.out_file }; ofs.is_open())
-					ofs << process::Proc(rc.get(), Global.command) << newline_if_enabled;
+					ofs << process::Proc(rc, Global.command) << newline_if_enabled;
 				else throw make_exception("Failed to open output file \"", Global.out_file, "\"!");
 			}
 			else { // STDOUT
 				Global.log.info("Directing output to STDOUT");
-				std::cout << process::Proc(rc.get(), Global.command) << newline_if_enabled;
+				std::cout << process::Proc(rc, Global.command) << newline_if_enabled;
 			}
 		}
-		
+
 		// check if process pipe set the return code correctly
-		if (!rc.get()) {
+		if (rc == RETURN_CODE_PROCFAILURE) {
 			Global.log.debug("Return code pointer wasn't set, the process pipe failed to correctly set a return value!");
 			throw make_exception('\"', color::setcolor::yellow, Global.command, color::reset_f, "\" failed!");
 		}
@@ -132,9 +133,11 @@ int main(const int argc, char** argv)
 			(void)std::cin.get();
 		}
 
+		// log the return value
 		Global.log.log("Command returned: ", color::setcolor::green, rc, color::setcolor::reset);
 
-		return *rc.get();
+		// forward the command return value
+		return rc;
 	} catch (const std::exception& ex) { // catch std::exceptions
 		Global.log.error(ex.what());
 	} catch (...) { // catch other exceptions
