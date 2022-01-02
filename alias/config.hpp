@@ -50,7 +50,7 @@ namespace alias {
 			<< "out_file = \"" << Global.out_file << "\" ; Put the name of a file to direct output to. If empty, STDOUT is used.\n"
 			<< '\n'
 			<< '[' << HEADER_MISC << "]\n"
-			<< "log_level = " << Global.log.getLevel().as_string_id() << " ; (Range: 0 - 127) See below table for flag values.\n"
+			<< "log_level = " << Global.log.getLevel().as_string_id() << " ; (Range: 0 - 127) See below table for flag values. Default is 15.\n"
 			<< "; | Flag | Log Level |\n"
 			<< "; |------|-----------|\n"
 			<< "; | `0`  | None      |\n"
