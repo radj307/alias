@@ -1,4 +1,4 @@
-# Command-Alias
+# alias
 This is a simple executable that executes a single set command.  
 
 This allows you to create command aliases or command macros on windows, or execute shell scripts _(`bat`, `ps1`)_ using an executable.
