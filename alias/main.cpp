@@ -36,9 +36,9 @@ inline void version_check()
 		throw make_exception("Config file was generated with an incompatible version of alias, delete it and regenerate.");
 	}
 	else if (ALIAS_VERSION_MINOR > std::get<1>(Global.file_version))
-		Global.log.msg("Minor Version Mismatch: (", color::setcolor::yellow, version_to_string(Global.file_version), color::reset_f, " < ", ALIAS_VERSION, ')');
+		Global.log.log("Minor Version Mismatch: (", color::setcolor::yellow, version_to_string(Global.file_version), color::reset_f, " < ", ALIAS_VERSION, ')');
 	else if (ALIAS_VERSION_PATCH > std::get<2>(Global.file_version))
-		Global.log.msg("Patch Version Mismatch: (", version_to_string(Global.file_version), " < ", ALIAS_VERSION, ')');
+		Global.log.log("Patch Version Mismatch: (", version_to_string(Global.file_version), " < ", ALIAS_VERSION, ')');
 }
 
  /**
