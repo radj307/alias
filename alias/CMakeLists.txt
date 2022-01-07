@@ -10,15 +10,15 @@ if (MSVC)
 	string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus")
 endif()
 
-set(INCLUDE_FILES
+set(HEADERS
 	"globals.h"
 	"config.hpp"
-	"main.cpp"
 )
 
-add_executable (alias ${INCLUDE_FILES})
-#target_include_directories(alias PUBLIC "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_SOURCE_DIR}/307lib/${CMAKE_BUILD_TYPE}/include")
-#target_link_directories(alias PUBLIC "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_SOURCE_DIR}/307lib/${CMAKE_BUILD_TYPE}/lib")
+add_executable (alias "main.cpp")
+target_sources(alias PUBLIC ${HEADERS})
+
+CREATE_VERSION_HEADER("ALIAS" ${VER_MAJOR} ${VER_MINOR} ${VER_PATCH})
 
 target_link_libraries(alias PUBLIC shared strlib filelib TermAPI)
 

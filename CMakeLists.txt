@@ -9,14 +9,13 @@ if (MSVC)
 	string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus")	# Fix MSVC __cplusplus macro
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/307modules")
 include(AutoVersion)
 
 # Create the version.h file
 FILE(REMOVE "${CMAKE_SOURCE_DIR}/alias/version.h")
-PARSE_VERSION_STRING(${CMAKE_SOURCE_DIR} VER_MAJOR VER_MINOR VER_PATCH VER_EXTRA)
-CONCAT_VERSION_STRING(VER ${VER_MAJOR} ${VER_MINOR} ${VER_PATCH})
-configure_file("${CMAKE_SOURCE_DIR}/cmake/inputs/version.h.in" "${CMAKE_SOURCE_DIR}/alias/version.h" @ONLY)
+GET_VERSION(${CMAKE_SOURCE_DIR} VER_MAJOR VER_MINOR VER_PATCH VER_EXTRA)
+MAKE_VERSION(VER ${VER_MAJOR} ${VER_MINOR} ${VER_PATCH})
 
 # Command Alias Project
 project ("cmd-alias" VERSION ${VER} LANGUAGES CXX)
@@ -26,6 +25,8 @@ add_subdirectory("307lib")
 # Include the main alias project.
 add_subdirectory("alias")
 
+option(ENABLE_EXECPIPE "" OFF)
 # Include the execute contents of STDOUT as command project
-add_subdirectory("execpipe")
-
+if (ENABLE_EXECPIPE)
+	add_subdirectory("execpipe")
+endif()

@@ -41,18 +41,18 @@ inline void version_check()
 		Global.log.log("Patch Version Mismatch: (", version_to_string(Global.file_version), " < ", ALIAS_VERSION, ')');
 }
 
- /**
-  * @brief			Main.
-  * @param argc		Argument Count
-  * @param argv		Argument Array
-  * @returns		int
-  *\n
-  *					| Value					 | Description				|
-  *					| ---------------------- | ------------------------ |
-  *					| <any>					 | Process Return Code		|
-  *					| RETURN_CODE_EXCEPTION	 | An Exception Occurred	|
-  *					| RETURN_CODE_INITIALIZE | Wrote default INI		|
-  */
+/**
+ * @brief			Main.
+ * @param argc		Argument Count
+ * @param argv		Argument Array
+ * @returns		int
+ *\n
+ *					| Value					 | Description				|
+ *					| ---------------------- | ------------------------ |
+ *					| <any>					 | Process Return Code		|
+ *					| RETURN_CODE_EXCEPTION	 | An Exception Occurred	|
+ *					| RETURN_CODE_INITIALIZE | Wrote default INI		|
+ */
 int main(const int argc, char** argv)
 {
 	try {
@@ -63,7 +63,24 @@ int main(const int argc, char** argv)
 		// Locate the config file
 		env::PATH path{ {argv[0]} };
 		const auto& [program_path, program_name] { path.resolve_split(argv[0]) };
-		const auto cfg_path{ program_path / std::filesystem::path(program_name).replace_extension("ini") };
+
+
+		#ifdef _DEBUG
+		std::filesystem::path cfg_path;
+		for (int i{ 1 }; i < argc; ++i) {
+			const auto arg{ argv[i] };
+			if ("--config"s == arg) {
+				if (i + 1 < argc) {
+					cfg_path = argv[++i];
+					break;
+				}
+			}
+		}
+		if (cfg_path.empty())
+			throw make_exception("No config file was specified with \"--config\"! This exception only appears in debug mode.");
+		#else
+		auto cfg_path{ program_path / std::filesystem::path(program_name).replace_extension("ini") };
+		#endif
 
 		Global.log.debug("Config Path: ", cfg_path.generic_string());
 
@@ -82,7 +99,7 @@ int main(const int argc, char** argv)
 
 		// Check the config version
 		version_check();
-		
+
 		// Check if the command field is blank
 		if (Global.command.empty())
 			throw make_exception("Invalid config: Command is blank!");
@@ -99,7 +116,7 @@ int main(const int argc, char** argv)
 		}
 
 		Global.log.info("Command:\t\"", Global.command, '\"');
-		
+
 		int rc{ RETURN_CODE_PROCFAILURE };
 
 		// Select output method
@@ -138,10 +155,10 @@ int main(const int argc, char** argv)
 
 		// forward the command return value
 		return rc;
-	} catch (const std::exception& ex) { // catch std::exceptions
-		Global.log.error(ex.what());
-	} catch (...) { // catch other exceptions
-		Global.log.crit("An unknown exception occurred!");
+		} catch (const std::exception& ex) { // catch std::exceptions
+			Global.log.error(ex.what());
+		} catch (...) { // catch other exceptions
+			Global.log.crit("An unknown exception occurred!");
+		}
+		return RETURN_CODE_EXCEPTION;
 	}
-	return RETURN_CODE_EXCEPTION;
-}
