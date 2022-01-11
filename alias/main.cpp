@@ -29,23 +29,28 @@ inline std::string merge_args(const int argc, char** argv, const int off = 1)
 	return buffer;
 }
 
-inline void version_check()
+inline bool version_check()
 {
 	if (ALIAS_VERSION_MAJOR > std::get<0>(Global.file_version)) {
 		Global.log.error("Major Version Mismatch: (", color::setcolor::red, version_to_string(Global.file_version), color::reset_f, " < ", ALIAS_VERSION, ')');
 		throw make_exception("Config file was generated with an incompatible version of alias, delete it and regenerate.");
 	}
-	else if (ALIAS_VERSION_MINOR > std::get<1>(Global.file_version))
+	else if (ALIAS_VERSION_MINOR > std::get<1>(Global.file_version)) {
 		Global.log.log("Minor Version Mismatch: (", color::setcolor::yellow, version_to_string(Global.file_version), color::reset_f, " < ", ALIAS_VERSION, ')');
-	else if (ALIAS_VERSION_PATCH > std::get<2>(Global.file_version))
+		return true;
+	}
+	else if (ALIAS_VERSION_PATCH > std::get<2>(Global.file_version)) {
 		Global.log.log("Patch Version Mismatch: (", version_to_string(Global.file_version), " < ", ALIAS_VERSION, ')');
+		return true;
+	}
+	return false;
 }
 
 /**
  * @brief			Main.
  * @param argc		Argument Count
  * @param argv		Argument Array
- * @returns		int
+ * @returns			int
  *\n
  *					| Value					 | Description				|
  *					| ---------------------- | ------------------------ |
@@ -66,7 +71,8 @@ int main(const int argc, char** argv)
 
 
 		#ifdef _DEBUG
-		std::filesystem::path cfg_path;
+		std::filesystem::path cfg_path{argv[1]};
+		/*
 		for (int i{ 1 }; i < argc; ++i) {
 			const auto arg{ argv[i] };
 			if ("--config"s == arg) {
@@ -75,7 +81,7 @@ int main(const int argc, char** argv)
 					break;
 				}
 			}
-		}
+		}*/
 		if (cfg_path.empty())
 			throw make_exception("No config file was specified with \"--config\"! This exception only appears in debug mode.");
 		#else
@@ -87,7 +93,7 @@ int main(const int argc, char** argv)
 		// Check if the config file exists
 		if (!file::exists(cfg_path)) {
 			Global.log.debug("Missing Config File.");
-			if (write_config(cfg_path, Version{ ALIAS_VERSION_MAJOR, ALIAS_VERSION_MINOR, ALIAS_VERSION_PATCH }))
+			if (write_config(cfg_path))
 				Global.log.msg("Successfully created ", cfg_path.generic_string());
 			else
 				Global.log.error("Failed to create file ", cfg_path.generic_string());
@@ -97,8 +103,13 @@ int main(const int argc, char** argv)
 		// Read the config
 		auto cfg{ read_config(cfg_path) };
 
-		// Check the config version
-		version_check();
+		// Check if the config version is outdated
+		if (version_check()) {
+			Global.log.debug("Attempting to update config file_version.");
+			if (write_config(cfg_path, cfg, true))
+				Global.log.log("Successfully updated ", cfg_path.generic_string(), " to file_version: ", ALIAS_VERSION);
+			else Global.log.log("Failed to update ", cfg_path.generic_string(), " file version!");
+		}
 
 		// Check if the command field is blank
 		if (Global.command.empty())
@@ -108,7 +119,12 @@ int main(const int argc, char** argv)
 
 		// Concatenate arguments to the command if forward_args is enabled
 		if (Global.forward_args && argc > 1) {
-			if (const auto margs{ merge_args(argc, argv) }; !margs.empty()) {
+			#ifdef _DEBUG
+			const auto margs{ merge_args(argc, argv, 3) };
+			#else
+			const auto margs{ merge_args(argc, argv) };
+			#endif
+			if (!margs.empty()) {
 				Global.command.reserve(Global.command.size() + 1ull + margs.size());
 				Global.command += ' ';
 				Global.command += margs;

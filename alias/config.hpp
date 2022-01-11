@@ -31,14 +31,19 @@ namespace alias {
 	}
 
 	/// @brief	Write the given config to disk
-	[[nodiscard]] inline bool write_config(const std::filesystem::path& path, const file::INI& ini) { return ini.write(path); }
+	[[nodiscard]] inline bool write_config(const std::filesystem::path& path, file::INI& ini, const bool& update_version = false)
+	{
+		if (update_version)
+			ini.insert_or_assign("", "file_version", std::string(ALIAS_VERSION));
+		return ini.write(path);
+	}
 
 	/// @brief	Write the default config to disk
-	[[nodiscard]] inline bool write_config(const std::filesystem::path& path, const Version& version)
+	[[nodiscard]] inline bool write_config(const std::filesystem::path& path)
 	{
 		std::stringstream buffer;
 		buffer
-			<< "file_version = " << version_to_string(version) << '\n'
+			<< "file_version = " << ALIAS_VERSION << '\n'
 			<< '[' << HEADER_TARGET << "]\n"
 			<< "command = \"" << Global.command << "\" ; Put the command you want to execute here\n"
 			<< "forward_args = " << str::bool_to_string(Global.forward_args) << " ; When true, passes any arguments received to the target by appending them to the command string.\n"
@@ -64,4 +69,6 @@ namespace alias {
 			;
 		return file::write(path, buffer.rdbuf(), false);
 	}
+
+
 }
