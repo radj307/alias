@@ -105,10 +105,10 @@ int main(const int argc, char** argv)
 
 		// Check if the config version is outdated
 		if (version_check()) {
-			Global.log.debug("Attempting to update config file_version.");
-			if (write_config(cfg_path, cfg, true))
-				Global.log.log("Successfully updated ", cfg_path.generic_string(), " to file_version: ", ALIAS_VERSION);
-			else Global.log.log("Failed to update ", cfg_path.generic_string(), " file version!");
+	//		Global.log.debug("Attempting to update config file_version.");
+	//		if (write_config(cfg_path, cfg, true))
+	//			Global.log.log("Successfully updated ", cfg_path.generic_string(), " to file_version: ", ALIAS_VERSION);
+	//		else Global.log.log("Failed to update ", cfg_path.generic_string(), " file version!");
 		}
 
 		// Check if the command field is blank
