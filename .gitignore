@@ -350,4 +350,3 @@ MigrationBackup/
 .ionide/
 out/
 /alias/version.h
-307lib/
