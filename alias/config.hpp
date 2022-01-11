@@ -67,7 +67,7 @@ namespace alias {
 			<< "; | `32` | Info      |\n"
 			<< "; | `64` | Debug     |\n"
 			;
-		return file::write(path, buffer.rdbuf(), false);
+		return file::write(path, buffer.rdbuf());
 	}
 
 
