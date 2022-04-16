@@ -23,13 +23,13 @@ _Note: __popen__ uses `cmd.exe`, so powershell commands will not work unless you
 4.  Edit the generated `.ini` file & set the command to execute.
 
 __Example:__  
-Say you wanted to execute the command `ls -a` by entering `lsa`.  
-First, rename `alias.exe` to `lsa.exe`, and place it somewhere on your PATH.  
-Then run `lsa.exe` once to generate `lsa.ini` in the same directory, and open it in a text editor.  
+Say you wanted to execute the command `ls -Force` by entering `lsf`.  
+First, rename `alias.exe` to `lsf.exe`, and place it somewhere on your PATH.  
+Then run `lsf.exe` once to generate `lsf.ini` in the same directory, and open it in a text editor.  
 Set the following values:  
 ```ini
 [target]
 command = "ls -Force"
 forward_args = true
 ```
-Now you can use the `lsa` command to execute `ls -Hidden -Recurse`
+Now you can use the `lsf` command to execute `ls -Force`
