@@ -1,20 +1,14 @@
 # alias
-This is a simple executable that executes a single set command.  
+This is a simple executable that executes a single pre-set command.  
 
-This allows you to create command aliases or command macros on windows, or execute shell scripts _(`bat`, `ps1`)_ using an executable.
+This allows you to create command aliases or command macros on windows, or execute shell scripts (`.bat`/`.ps1`) using an executable (`.exe`).
 
 # Features
 - Same return code as executing the command manually
 - Argument Forwarding
-- Filename-Based, you can have any number of aliases in a single directory.
+- Name-based configuration; you can copy-paste the executable in the same directory and rename it to create a different alias.
 - Live Output
 - Fully Configurable
-
-# How it Works
-The program keeps track of its current name & location, and checks its directory for an `.ini` configuration file with the same name.  
-It then uses the __popen__ function to execute the command set in the config, prints any text from STDOUT/STDERR to either STDOUT or a file, then returns the result.  
-
-_Note: __popen__ uses `cmd.exe`, so powershell commands will not work unless you prepend `powershell -Command` to the command._
 
 # Usage
 1.  Download the [latest release](https://github.com/radj307/Command-Alias/releases).
@@ -33,3 +27,12 @@ command = "ls -Force"
 forward_args = true
 ```
 Now you can use the `lsf` command to execute `ls -Force`
+
+# How it Works
+
+When the program is called, it finds its current location and searches that directory for an `ini` file with the same name.  
+
+It then uses the __popen__ function to open a process pipe that it uses to emulate that process.  
+The executed command's return code is forwarded by the program when it exits as well.  
+
+_Note: __popen__ uses `cmd.exe` by default; to execute PowerShell commands you must prepend `powershell -Command` to the command string in the config._
