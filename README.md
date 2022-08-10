@@ -4,30 +4,36 @@ A filename-based Windows executable that emulates the specified command in a ter
 
 This allows you to create command aliases or command macros on windows, or execute shell scripts (`.bat`/`.ps1`) using an executable (`.exe`).
 
-# Features
+
+## Features
+
 - Same return code as executing the command manually
-- Argument Forwarding
-- Name-based configuration; you can copy-paste the executable in the same directory and rename it to create a different alias.
-- Live Output
-- Fully Configurable
+- Forwards commandline arguments
+- Filename-based configuration allows you to have any number of aliases in the same directory
+- Live-updating output
 
-# Usage
-1.  Download the [latest release](https://github.com/radj307/Command-Alias/releases).
-2.  Rename the executable to whatever you want.
-3.  Run the executable once, which will create the default configuration file in the same directory as the executable.
-4.  Edit the generated `.ini` file & set the command to execute.
 
-__Example:__  
-Say you wanted to execute the command `ls -Force` by entering `lsf`.  
-First, rename `alias.exe` to `lsf.exe`, and place it somewhere on your PATH.  
-Then run `lsf.exe` once to generate `lsf.ini` in the same directory, and open it in a text editor.  
-Set the following values:  
-```ini
-[target]
-command = "ls -Force"
-forward_args = true
-```
-Now you can use the `lsf` command to execute `ls -Force`
+## Usage
+
+ 1. Download the [latest release](https://github.com/radj307/Command-Alias/releases).
+ 2. Rename the executable to whatever you want.
+ 3. Run the executable once, which will create the default configuration file in the same directory as the executable.
+ 4. Edit the generated `.ini` file & set the command to execute.
+
+
+### Example
+
+Say you wanted to create an alias `lsf` for the PowerShell command `Get-ChildItem -Force`.  
+
+ 1. Download *(or copy-paste)* `alias.exe` & move it to a [directory on your PATH](https://stackoverflow.com/a/44272417/8705305). 
+ 2. Rename `alias.exe` to `lsf.exe`, then run it once to generate the config file.
+ 3. Edit `lsf.ini`:  
+    ```ini
+    [target]
+    command = "PowerShell -Command 'Get-ChildItem -Force'"
+    forward_args = true
+    ```  
+    Now you can run the `lsf` command to execute `Get-ChildItem -Force`
 
 # How it Works
 
