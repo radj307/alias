@@ -1,5 +1,6 @@
 # alias
-This is a simple executable that executes a single pre-set command.  
+
+A filename-based Windows executable that emulates the specified command in a terminal, similar to `bash` aliases.
 
 This allows you to create command aliases or command macros on windows, or execute shell scripts (`.bat`/`.ps1`) using an executable (`.exe`).
 
@@ -13,7 +14,7 @@ This allows you to create command aliases or command macros on windows, or execu
 # Usage
 1.  Download the [latest release](https://github.com/radj307/Command-Alias/releases).
 2.  Rename the executable to whatever you want.
-3.  Run the executable once, which will create the default configuration file next to the executable.
+3.  Run the executable once, which will create the default configuration file in the same directory as the executable.
 4.  Edit the generated `.ini` file & set the command to execute.
 
 __Example:__  
