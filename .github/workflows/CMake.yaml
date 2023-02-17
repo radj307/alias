@@ -62,4 +62,4 @@ jobs:
         name:                     ${{ steps.get_version.outputs.NAME }}
         generate_release_notes:   true
         fail_on_unmatched_files:  true
-        files:                    ${{github.workspace}}/*.zip
+        files:                    ${{github.workspace}}/*.exe
