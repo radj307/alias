@@ -1,3 +1,6 @@
+/**
+ * This code opens a process pipe and live-prints the received STDOUT data.
+ */
 #include <sysarch.h>
 #include <TermAPI.hpp>
 #include <make_exception.hpp>

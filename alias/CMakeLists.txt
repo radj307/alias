@@ -21,7 +21,7 @@ MAKE_STRINGRC_VERSIONINFO(_alias_stringrc_versioninfo
 	"Copyright © 2023 by radj307"
 	"radj307"
 	"alias"
-	"Simple command alias utility. Place this executable somewhere on your PATH, and name it accordingly."
+	"Simple command alias utility."
 )
 MAKE_RESOURCE("${CMAKE_CURRENT_BINARY_DIR}/rc/alias.rc" "${_alias_stringrc_versioninfo}")
 
