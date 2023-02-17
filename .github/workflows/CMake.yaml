@@ -1,0 +1,62 @@
+name: CMake
+
+on:
+  push:
+    tags: [ '*.*.*' ]
+  workflow_dispatch:
+  
+env:
+  PROJECT_NAME: 'alias'
+  BUILD_TYPE: Release
+
+jobs:
+  cmake:
+    runs-on: 'windows-latest'
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules:  recursive
+        fetch-depth: 0
+
+    - name: Configure
+      run:  cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
+
+    - name: Build
+      run:  cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: executable
+        path: "${{github.workspace}}/build/${{env.PROJECT_NAME}}/*"
+
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/download-artifact@v3
+
+    - name: 'Get Release Tag'
+      id:   get_version
+      run:  |
+            if [ "${{github.event.inputs.tag}}" == "" ]; then TAG="${GITHUB_REF/refs\/tags\//}"; else TAG="${{github.event.inputs.tag}}" ; fi
+            echo VERSION=$TAG >> $GITHUB_OUTPUT
+            echo NAME="Release $TAG" >> $GITHUB_OUTPUT
+
+    - name:   'Stage Archives'
+      run:    |
+              cd ${{github.workspace}}
+              if mv ./*/* ./ ; then ls -lAgh ; else ls -lAghR ; fi
+      shell:  bash
+
+    - name: 'Create Release'
+      #if:   ${{ github.event_name == 'workflow_dispatch' }}
+      uses: softprops/action-gh-release@v1
+      with:
+        draft:                    true
+        tag_name:                 ${{ steps.get_version.outputs.VERSION }}
+        name:                     ${{ steps.get_version.outputs.NAME }}
+        generate_release_notes:   true
+        fail_on_unmatched_files:  true
+        files:                    ${{github.workspace}}/*.zip
