@@ -32,6 +32,7 @@ jobs:
         path: "${{github.workspace}}/build/${{env.PROJECT_NAME}}/*"
 
   release:
+    needs:   cmake
     runs-on: ubuntu-latest
 
     steps:
