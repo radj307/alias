@@ -17,7 +17,7 @@ MAKE_VERSION_HEADER("${CMAKE_CURRENT_BINARY_DIR}/rc/version.h" "alias" "${alias_
 
 include(ResourceMaker)
 MAKE_STRINGRC_VERSIONINFO(_alias_stringrc_versioninfo
-	"${alias_VERSION}"
+	"${alias_VERSION_EXTENDED}"
 	"Copyright © 2023 by radj307"
 	"radj307"
 	"alias"
