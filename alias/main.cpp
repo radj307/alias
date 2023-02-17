@@ -2,7 +2,7 @@
 using namespace alias;
 
 #include <make_exception.hpp>
-#include <env.hpp>
+#include <envpath.hpp>
 #include <str.hpp>
 #include <TermAPI.hpp>
 #include <process.hpp>
@@ -31,16 +31,16 @@ inline std::string merge_args(const int argc, char** argv, const int off = 1)
 
 inline bool version_check()
 {
-	if (ALIAS_VERSION_MAJOR > std::get<0>(Global.file_version)) {
-		Global.log.error("Major Version Mismatch: (", color::setcolor::red, version_to_string(Global.file_version), color::reset_f, " < ", ALIAS_VERSION, ')');
+	if (alias_VERSION_MAJOR > std::get<0>(Global.file_version)) {
+		Global.log.error("Major Version Mismatch: (", color::setcolor::red, version_to_string(Global.file_version), color::reset_f, " < ", alias_VERSION, ')');
 		throw make_exception("Config file was generated with an incompatible version of alias, delete it and regenerate.");
 	}
-	else if (ALIAS_VERSION_MINOR > std::get<1>(Global.file_version)) {
-		Global.log.log("Minor Version Mismatch: (", color::setcolor::yellow, version_to_string(Global.file_version), color::reset_f, " < ", ALIAS_VERSION, ')');
+	else if (alias_VERSION_MINOR > std::get<1>(Global.file_version)) {
+		Global.log.log("Minor Version Mismatch: (", color::setcolor::yellow, version_to_string(Global.file_version), color::reset_f, " < ", alias_VERSION, ')');
 		return true;
 	}
-	else if (ALIAS_VERSION_PATCH > std::get<2>(Global.file_version)) {
-		Global.log.log("Patch Version Mismatch: (", version_to_string(Global.file_version), " < ", ALIAS_VERSION, ')');
+	else if (alias_VERSION_PATCH > std::get<2>(Global.file_version)) {
+		Global.log.log("Patch Version Mismatch: (", version_to_string(Global.file_version), " < ", alias_VERSION, ')');
 		return true;
 	}
 	return false;
@@ -61,42 +61,23 @@ inline bool version_check()
 int main(const int argc, char** argv)
 {
 	try {
-		std::cout << term::EnableANSI;
-
-		Global.log.info("Alias version ", ALIAS_VERSION);
+		Global.log.info("Alias version ", alias_VERSION);
 
 		// Locate the config file
-		env::PATH path{ {argv[0]} };
+		env::PATH path;
 		const auto& [program_path, program_name] { path.resolve_split(argv[0]) };
 
-
-		#ifdef _DEBUG
-		std::filesystem::path cfg_path{argv[1]};
-		/*
-		for (int i{ 1 }; i < argc; ++i) {
-			const auto arg{ argv[i] };
-			if ("--config"s == arg) {
-				if (i + 1 < argc) {
-					cfg_path = argv[++i];
-					break;
-				}
-			}
-		}*/
-		if (cfg_path.empty())
-			throw make_exception("No config file was specified with \"--config\"! This exception only appears in debug mode.");
-		#else
 		auto cfg_path{ program_path / std::filesystem::path(program_name).replace_extension("ini") };
-		#endif
 
-		Global.log.debug("Config Path: ", cfg_path.generic_string());
+		Global.log.debug("Config Path: ", cfg_path);
 
 		// Check if the config file exists
 		if (!file::exists(cfg_path)) {
 			Global.log.debug("Missing Config File.");
 			if (write_config(cfg_path))
-				Global.log.msg("Successfully created ", cfg_path.generic_string());
+				Global.log.msg("Successfully created ", cfg_path);
 			else
-				Global.log.error("Failed to create file ", cfg_path.generic_string());
+				Global.log.error("Failed to create file ", cfg_path);
 			exit(RETURN_CODE_INITIALIZE);
 		}
 
@@ -115,7 +96,7 @@ int main(const int argc, char** argv)
 		if (Global.command.empty())
 			throw make_exception("Invalid config: Command is blank!");
 
-		Global.log.info("Successfully read config file ", cfg_path.generic_string());
+		Global.log.info("Successfully read config file ", cfg_path);
 
 		// Concatenate arguments to the command if forward_args is enabled
 		if (Global.forward_args && argc > 1) {
