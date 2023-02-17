@@ -18,6 +18,8 @@ jobs:
       with:
         submodules:  recursive
         fetch-depth: 0
+        
+    - uses: ilammy/msvc-dev-cmd@v1.12.0
 
     - name: Configure
       run:  cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
