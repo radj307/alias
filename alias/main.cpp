@@ -29,7 +29,7 @@ inline std::string merge_args(const int argc, char** argv, const int off = 1)
 	return buffer;
 }
 
-inline bool version_check()
+inline bool checkForVersionMismatch()
 {
 	if (alias_VERSION_MAJOR > std::get<0>(Global.file_version)) {
 		Global.log.error("Major Version Mismatch: (", color::setcolor::red, version_to_string(Global.file_version), color::reset_f, " < ", alias_VERSION, ')');
@@ -85,11 +85,8 @@ int main(const int argc, char** argv)
 		auto cfg{ read_config(cfg_path) };
 
 		// Check if the config version is outdated
-		if (version_check()) {
-	//		Global.log.debug("Attempting to update config file_version.");
-	//		if (write_config(cfg_path, cfg, true))
-	//			Global.log.log("Successfully updated ", cfg_path.generic_string(), " to file_version: ", ALIAS_VERSION);
-	//		else Global.log.log("Failed to update ", cfg_path.generic_string(), " file version!");
+		if (checkForVersionMismatch()) {
+			Global.log.log("Proceeding anyway despite version mismatch.");
 		}
 
 		// Check if the command field is blank
@@ -100,29 +97,30 @@ int main(const int argc, char** argv)
 
 		// Concatenate arguments to the command if forward_args is enabled
 		if (Global.forward_args && argc > 1) {
-			#ifdef _DEBUG
+		#ifdef _DEBUG
 			const auto margs{ merge_args(argc, argv, 3) };
-			#else
+		#else
 			const auto margs{ merge_args(argc, argv) };
-			#endif
+		#endif
 			if (!margs.empty()) {
 				Global.command.reserve(Global.command.size() + 1ull + margs.size());
 				Global.command += ' ';
 				Global.command += margs;
 			}
-		}
+	}
 
 		Global.log.info("Command:\t\"", Global.command, '\"');
 
 		int rc{ RETURN_CODE_PROCFAILURE };
 
 		// Select output method
-		if (!Global.allow_output) { // no output
+		if (!Global.allow_output) { // output is disabled:
 			if (process::Proc(rc, Global.command).close())
 				Global.log.info("Silent execution successful.");
-			else throw make_exception("Failed to execute command \"", Global.command, '\"');
+			else
+				throw make_exception("Failed to execute command \"", Global.command, '\"');
 		}
-		else {
+		else { // output is enabled:
 			if (!Global.out_file.empty()) { // File
 				Global.log.info("Directing output to \"", Global.out_file, '\"');
 				if (std::ofstream ofs{ Global.out_file }; ofs.is_open())
@@ -152,10 +150,10 @@ int main(const int argc, char** argv)
 
 		// forward the command return value
 		return rc;
-		} catch (const std::exception& ex) { // catch std::exceptions
-			Global.log.error(ex.what());
-		} catch (...) { // catch other exceptions
-			Global.log.crit("An unknown exception occurred!");
-		}
-		return RETURN_CODE_EXCEPTION;
+} catch (const std::exception& ex) { // catch std::exceptions
+	Global.log.error(ex.what());
+} catch (...) { // catch other exceptions
+	Global.log.crit("An unknown exception occurred!");
+}
+return RETURN_CODE_EXCEPTION;
 	}

@@ -34,7 +34,7 @@ namespace alias {
 	[[nodiscard]] inline bool write_config(const std::filesystem::path& path, ini::INI& ini, const bool& update_version = false)
 	{
 		if (update_version)
-			ini.insert_or_assign("", "file_version", std::string(alias_VERSION));
+			ini.insert_or_assign(ini::GLOBAL, "file_version", std::string(alias_VERSION));
 		return ini.write(path);
 	}
 
@@ -45,17 +45,17 @@ namespace alias {
 		buffer
 			<< "file_version = " << alias_VERSION << '\n'
 			<< '[' << HEADER_TARGET << "]\n"
-			<< "command = \"" << Global.command << "\" ; Put the command you want to execute here\n"
-			<< "forward_args = " << str::bool_to_string(Global.forward_args) << " ; When true, passes any arguments received to the target by appending them to the command string.\n"
+			<< "command = \"" << Global.command << "\" ; Put the command you want to execute here.\n"
+			<< "forward_args = " << str::bool_to_string(Global.forward_args) << " ; When true, passes any arguments received to the target by appending them to the command string. (Default: true)\n"
 			<< '\n'
 			<< '[' << HEADER_OUTPUT << "]\n"
-			<< "allow_output = " << str::bool_to_string(Global.allow_output) << " ; When false, the command produces no output.\n"
-			<< "pause_before_exit = " << str::bool_to_string(Global.pause_before_exit) << " ; Prompts for a key press before exiting. Only works if the command executed successfully.\n"
-			<< "append_newline = " << str::bool_to_string(Global.append_newline) << " ; When true, appends a newline character to the output.\n"
-			<< "out_file = \"" << Global.out_file << "\" ; Put the name of a file to direct output to. If empty, STDOUT is used.\n"
+			<< "allow_output = " << str::bool_to_string(Global.allow_output) << " ; When false, the command produces no output. (Default: true)\n"
+			<< "pause_before_exit = " << str::bool_to_string(Global.pause_before_exit) << " ; Prompts for a key press before exiting. Only works if the command executed successfully. (Default: false)\n"
+			<< "append_newline = " << str::bool_to_string(Global.append_newline) << " ; When true, appends a newline character to the output. (Default: false)\n"
+			<< "out_file = \"" << Global.out_file << "\" ; Put the name of a file to direct output to. If empty, STDOUT is used. (Default: "")\n"
 			<< '\n'
 			<< '[' << HEADER_MISC << "]\n"
-			<< "log_level = " << Global.log.getLevel().as_string_id() << " ; (Range: 0 - 127) See below table for flag values. Default is 15.\n"
+			<< "log_level = " << Global.log.getLevel().as_string_id() << " ; (Range: 0 - 127) Bitfield that determines which log messages are shown and which are hidden. (Default: 15)\n"
 			<< "; | Flag | Log Level |\n"
 			<< "; |------|-----------|\n"
 			<< "; | `0`  | None      |\n"
